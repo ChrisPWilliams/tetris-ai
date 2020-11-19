@@ -1,0 +1,39 @@
+Reading material for tetris ai project
+
+READ KARL FRISTON: free energy principle: all life is based around minimising surprise (i.e. error between expectation and observation: this can be resolved either by updating the model or acting on the environment)
+
+http://cs231n.stanford.edu/reports/2016/pdfs/121_Report.pdf "Playing Tetris with Deep Reinforcement Learning" Matt Stevens Sabeek Pradhan
+
+Initial thoughts:
+-neural net should focus on where it wants to place the piece, rather than what buttons to press to get there
+-long time (game state distance) between actions and rewards hampers performance of reinforcement learning: may need extra scoring parameters to provide ai with hints as to whether or not it's on the right track
+
+https://codemyroad.wordpress.com/2013/04/14/tetris-ai-the-near-perfect-player/
+
+-not a neural net, instead uses genetic algorithm to tune 4 scoring parameters, which are then fed into a score function for the game state after 1 move: the combination of the 4 scoring parameters then tells the ai which of the possible game states there are for its next move is the best
+-works well for tetris as there are a small number of possible states after each move, but relies on 4 heuristics to score a game state. Could work well for games like chess also, although still requires a human to decide which heuristics should be used.
+
+http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf
+
+-formal description of NEAT neuro-evolution algorithm, as used in the MarI/O project
+-does not require training data nor presupposed scoring heuristics, however compared to the mario world example random chance will take much longer to provide the ai with a scoring point. Comes back to discussion in Stevens/Pradhan about strategy vs reflex based games
+
+https://www.hindawi.com/journals/aans/2015/157983/
+
+-supervised learning gets nowhere due to size of tetris state space (NP-complete) even when given a training set consisting of both perfect Dellacherie algorithm play and random junk
+-heuristics all but required to achieve acceptable performance
+
+LOG:
+FIRST MODEL: based on keras image recognition tutorial
+-supervised learning
+-first build using 3926 frames (samples) of my own play
+
+IDEA: performance should be randomly distributed around current level (i.e. sometimes it will play unusually well, other times unusually poorly). Could implement basic iterative improvement, by automatically selecting successful sessions to form a new training set? risk of overfitting
+
+
+SECOND MODEL: dqn agent as found in tf-agents package
+-deep q-learning (see atari paper)
+-writing openAI style wrapper for tetris game: should allow seamless interface with the agent
+
+-reward function idea: some kind of search to detect the shape of the surface directly under the active piece: this causes reward when the piece would fit flush and should encourage seamless placement
+    this should also alleviate problems with movewise training, as there is a potential change in reward every single move
