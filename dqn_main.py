@@ -30,14 +30,14 @@ tf.compat.v1.enable_v2_behavior()
 
 # SET HYPERPARAMETERS
 
-num_iterations = 100000                 # roughly 4000 iterations per minute
+num_iterations = 40000                 # roughly 4000 iterations per minute
 
 initial_collect_steps = 1000
 collect_steps_per_iteration = 1
-replay_buffer_max_length = 100000
+replay_buffer_max_length = 20000
 
 batch_size = 64
-learning_rate = 1e-4                    # smaller = slower learning but higher accuracy
+learning_rate = 1e-3                    # smaller = slower learning but higher accuracy
 adam_epsilon = 1e-5                     # bigger = slower learning but higher accuracy
 target_update_period = 1               # number of episodes before target network updates
 start_epsilon = 0.5
@@ -47,10 +47,10 @@ end_epsilon = 0.01
 num_eval_episodes = 10
 eval_interval = 1000
 log_interval = 200
-save_interval = 100000
+save_interval = 20000
 # INITIALISE GAME
 
-sessionID = 13                                      
+sessionID = 15                                      
 
 # SETUP ENVIRONMENTS
 
@@ -61,7 +61,8 @@ eval_game_env = tf_py_environment.TFPyEnvironment(eval_game_env_py)
 
 # INITIALISE AGENT
 
-fc_layer_params = (100,)         # number of hidden layers (or size?)
+conv_layer_params = ((16,(4,4),2),(32,(2,2),1))     # 2 convolutional layers: one with 16 4x4 filters w/ stride 4, one with 32 2x2 filters w/ stride 1
+fc_layer_params = (100,100)         # 2 hidden layers of 100 neurons each
 q_net = q_network.QNetwork(train_game_env.observation_spec(),
                            train_game_env.action_spec(), fc_layer_params=fc_layer_params)
 

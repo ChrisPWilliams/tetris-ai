@@ -2,6 +2,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/vscode,python,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=vscode,python,windows
 
+# ML models/data
+*session*
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
