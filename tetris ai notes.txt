@@ -40,4 +40,5 @@ SECOND MODEL: dqn agent as found in tf-agents package
 
 model session 15 age 40,000 (i'll send the model policy file on request) is an example of a fascinating problem: at around 20,000 generations it experienced a massive loss spike. The trained model massively favours a clockwise rotation
 over all other possible moves. I suspect this is due to experiencing a massive reward by clearing a line using a clockwise rotation as its last move, and without prioritised experience replay to weight the observation that came with that reward,
-it ascribes huge potential value to that rotation.
+it ascribes huge potential value to that rotation. Attempting to fix this by weighting experience replay, may also set up a deterministic environment to demonstrate scripted play, with observations, plays, and rewards ready to use to initialise
+replay buffer. This should expose the agent to various methods of line completion when sampling the buffer early in training, leading to a hybrid of RL and supervised learning.

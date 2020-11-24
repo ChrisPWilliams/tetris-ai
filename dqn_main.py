@@ -30,7 +30,7 @@ tf.compat.v1.enable_v2_behavior()
 
 # SET HYPERPARAMETERS
 
-num_iterations = 40000                 # roughly 4000 iterations per minute
+num_iterations = 100000                 # roughly 4000 iterations per minute
 
 initial_collect_steps = 1000
 collect_steps_per_iteration = 1
@@ -47,10 +47,10 @@ end_epsilon = 0.05
 num_eval_episodes = 10
 eval_interval = 1000
 log_interval = 200
-save_interval = 40000
+save_interval = 50000
 # INITIALISE GAME
 
-sessionID = 20                                      
+sessionID = 21                                      
 
 # SETUP ENVIRONMENTS
 
@@ -122,8 +122,8 @@ def collect_step(environment, policy, buffer):
     next_time_step = environment.step(action_step.action)
     traj = trajectory.from_transition(time_step, action_step, next_time_step)
 
-    # Add trajectory to the replay buffer, with copies per 0.005 reward (jury-rigged experience prioritisation weighting)
-    for i in range(int(traj.reward // 0.005)):
+    # Add trajectory to the replay buffer, with extra copies per 0.001 reward (jury-rigged experience prioritisation weighting)
+    for i in range(int((traj.reward // 0.001)+1)):
         buffer.add_batch(traj)
 
 def collect_data(environment, policy, buffer, steps):
