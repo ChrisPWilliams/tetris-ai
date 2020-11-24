@@ -409,4 +409,7 @@ class TetrisGame:
                         h2 = i
                         break
                 metric += (h2 - h1)
-        return (metric + 4)
+        metric += 10
+        if metric <= 0:
+            metric = 0
+        return metric

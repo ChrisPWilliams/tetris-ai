@@ -54,7 +54,7 @@ class TetrisGameEnv(py_environment.PyEnvironment):
         if scorediff < 0:
             scorediff = 0
         
-        reward = scorediff + 0.01*(1-(height/48)) + 0.002*flush_metric      
+        reward = scorediff + 0.0001*(1-(height/48))*flush_metric      
         # one point per line cleared, small reward for staying in the game, scaled down by the height of the current tetromino stack, with reward for flush shape placement
         
         if status == "end_episode":                      # extra incentive to avoid hitting the top of the stack as opposed to timing out the session
