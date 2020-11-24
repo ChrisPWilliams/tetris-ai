@@ -377,7 +377,7 @@ class TetrisGame:
             # print("min: {0} d: {1}".format(min(distcounts), d))
             metric += (min(distcounts) - d)        
         if metric == 0:                                             # don't bother to check edges if gaps are left below
-            if min(width) == 0:                             # check sides: first minimum (left) then maximum (right), 1 point per height of side (3 points if edge of screen)
+            if min(width) == 0:                             # check sides: first minimum (left) then maximum (right), 1 point per height of side (1 points if edge of screen)
                 metric += 1
             else: 
                 j1 = min(width) - 1
@@ -409,4 +409,4 @@ class TetrisGame:
                         h2 = i
                         break
                 metric += (h2 - h1)
-        return metric
+        return (metric + 4)

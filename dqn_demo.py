@@ -26,8 +26,8 @@ from tf_agents.trajectories import time_step as ts
 
 tf.compat.v1.enable_v2_behavior()
 
-sessionID = 14                                      
-model_age_steps = 100000
+sessionID = 20                                      
+model_age_steps = 40000
 demo_steps = 1000
 
 

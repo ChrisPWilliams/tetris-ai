@@ -33,7 +33,11 @@ IDEA: performance should be randomly distributed around current level (i.e. some
 
 SECOND MODEL: dqn agent as found in tf-agents package
 -deep q-learning (see atari paper)
--writing openAI style wrapper for tetris game: should allow seamless interface with the agent
+-written openAI style wrapper for tetris game: allows seamless interface with the agent
 
 -reward function idea: some kind of search to detect the shape of the surface directly under the active piece: this causes reward when the piece would fit flush and should encourage seamless placement
     this should also alleviate problems with movewise training, as there is a potential change in reward every single move
+
+model session 15 age 40,000 (i'll send the model policy file on request) is an example of a fascinating problem: at around 20,000 generations it experienced a massive loss spike. The trained model massively favours a clockwise rotation
+over all other possible moves. I suspect this is due to experiencing a massive reward by clearing a line using a clockwise rotation as its last move, and without prioritised experience replay to weight the observation that came with that reward,
+it ascribes huge potential value to that rotation.

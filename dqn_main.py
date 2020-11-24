@@ -34,23 +34,23 @@ num_iterations = 40000                 # roughly 4000 iterations per minute
 
 initial_collect_steps = 1000
 collect_steps_per_iteration = 1
-replay_buffer_max_length = 20000
+replay_buffer_max_length = 100000
 
 batch_size = 64
-learning_rate = 1e-3                    # smaller = slower learning but higher accuracy
+learning_rate = 3e-4                    # smaller = slower learning
 adam_epsilon = 1e-5                     # bigger = slower learning but higher accuracy
 target_update_period = 1               # number of episodes before target network updates
 start_epsilon = 0.5
-end_epsilon = 0.01
+end_epsilon = 0.05
 
 
 num_eval_episodes = 10
 eval_interval = 1000
 log_interval = 200
-save_interval = 20000
+save_interval = 40000
 # INITIALISE GAME
 
-sessionID = 15                                      
+sessionID = 20                                      
 
 # SETUP ENVIRONMENTS
 
@@ -61,10 +61,14 @@ eval_game_env = tf_py_environment.TFPyEnvironment(eval_game_env_py)
 
 # INITIALISE AGENT
 
-conv_layer_params = ((16,(4,4),2),(32,(2,2),1))     # 2 convolutional layers: one with 16 4x4 filters w/ stride 4, one with 32 2x2 filters w/ stride 1
-fc_layer_params = (100,100)         # 2 hidden layers of 100 neurons each
+conv_layer_params = ((16, (4,4), 2), (32, (2,2), 1))     # 2 convolutional layers: one with 16 4x4 filters w/ stride 4, one with 32 2x2 filters w/ stride 1
+fc_layer_params = (128, 128)         # 2 hidden layers of 128 neurons each
 q_net = q_network.QNetwork(train_game_env.observation_spec(),
-                           train_game_env.action_spec(), fc_layer_params=fc_layer_params)
+                           train_game_env.action_spec(), 
+                           conv_layer_params=conv_layer_params, 
+                           fc_layer_params=fc_layer_params)
+
+# convolutional layer causes breakage: check tetris_env for more
 
 optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate, epsilon=adam_epsilon)
 
@@ -118,8 +122,9 @@ def collect_step(environment, policy, buffer):
     next_time_step = environment.step(action_step.action)
     traj = trajectory.from_transition(time_step, action_step, next_time_step)
 
-    # Add trajectory to the replay buffer
-    buffer.add_batch(traj)
+    # Add trajectory to the replay buffer, with copies per 0.005 reward (jury-rigged experience prioritisation weighting)
+    for i in range(int(traj.reward // 0.005)):
+        buffer.add_batch(traj)
 
 def collect_data(environment, policy, buffer, steps):
     for i in range(steps):
@@ -130,6 +135,7 @@ def collect_data(environment, policy, buffer, steps):
 eval_policy = agent.policy
 collect_policy = agent.collect_policy
 random_policy = random_tf_policy.RandomTFPolicy(train_game_env.time_step_spec(), train_game_env.action_spec())
+
 
 # implement scripted pypolicy to get states from manual trainer and expose as tensorflow graph (see tf-agents policy tutorial)
 
@@ -180,10 +186,6 @@ for i in range(num_iterations):
     if step % save_interval == 0:
         savename = "modelpolicy_session_{0}_step_{1}".format(sessionID, step)
         eval_saver.save(savename)
-
-
-
-# need to save policy to file in order to then reload and use to display live play
 
 rand_avg_return = compute_avg_return(eval_game_env, random_policy, num_eval_episodes)
 print('random benchmark return = {0}'.format(rand_avg_return))

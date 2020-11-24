@@ -12,12 +12,17 @@ from tf_agents.specs import array_spec
 from tf_agents.environments import wrappers
 from tf_agents.trajectories import time_step as ts
 
+def one_hot(array):
+    encoded = (np.arange(2) == array[...,None]-1).astype("float32")
+    return encoded
+
 class TetrisGameEnv(py_environment.PyEnvironment):
 
     def __init__(self, sessionID, demo):
         self.game = gl.TetrisGame(sessionID,False,demo)
+        self.obs = one_hot(self.game.screenmat)
         self._action_spec = array_spec.BoundedArraySpec(shape=(1,), dtype=np.int32, minimum=0, maximum=4, name='action')
-        self._observation_spec = array_spec.BoundedArraySpec(shape=(25,10), dtype=np.int32, minimum=0, maximum=2, name='observation')
+        self._observation_spec = array_spec.BoundedArraySpec(shape=(25,10,2), dtype=np.float32, minimum=0, maximum=2, name='observation')
         self._episode_ended = False
 
     def action_spec(self):                              
@@ -29,7 +34,7 @@ class TetrisGameEnv(py_environment.PyEnvironment):
     def _reset(self):
         self.game.game_reset()
         self._episode_ended = False
-        return ts.restart(self.game.screenmat.astype("int32"))
+        return ts.restart(self.obs)
 
     def _step(self, action):
 
@@ -42,6 +47,7 @@ class TetrisGameEnv(py_environment.PyEnvironment):
         status = self.game.dqn_update()
         if status == "end_episode" or self.game.stepcount == 1000:
             self._episode_ended = True
+        self.obs = one_hot(self.game.screenmat)
         height = self.game.get_max_height()
         flush_metric = self.game.flush_metric()
         scorediff = self.game.score-oldscore
@@ -54,6 +60,6 @@ class TetrisGameEnv(py_environment.PyEnvironment):
         if status == "end_episode":                      # extra incentive to avoid hitting the top of the stack as opposed to timing out the session
             reward += -1
         if self._episode_ended:
-            return ts.termination(self.game.screenmat.astype("int32"), reward)
+            return ts.termination(self.obs, reward)
         else:
-            return ts.transition(self.game.screenmat.astype("int32"), reward, discount=0.99)
+            return ts.transition(self.obs, reward, discount=0.99)
