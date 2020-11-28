@@ -2,7 +2,7 @@ import sys
 sys.path.append("code")
 import numpy as np
 import tensorflow as tf
-import gamelib as gl
+import boxgamelib as bgl
 
 from tf_agents.environments import py_environment
 from tf_agents.environments import tf_environment
@@ -16,12 +16,12 @@ def one_hot(array):
     encoded = (np.arange(2) == array[...,None]-1).astype("float32")
     return encoded
 
-class TetrisGameEnv(py_environment.PyEnvironment):
+class TetrisGameEnv(py_environment.PyEnvironment):                      # based on boxgamelib which is largely a copy of gamelib: this one plays tetris but only spawns 2x2 square tetrominoes
 
     def __init__(self, sessionID, demo):
-        self.game = gl.TetrisGame(sessionID,False,demo)
+        self.game = bgl.TetrisGame(sessionID,False,demo)
         self.obs = one_hot(self.game.screenmat)
-        self._action_spec = array_spec.BoundedArraySpec(shape=(1,), dtype=np.int32, minimum=0, maximum=4, name='action')
+        self._action_spec = array_spec.BoundedArraySpec(shape=(1,), dtype=np.int32, minimum=0, maximum=2, name='action')
         self._observation_spec = array_spec.BoundedArraySpec(shape=(25,10,2), dtype=np.float32, minimum=0, maximum=2, name='observation')
         self._episode_ended = False
 
@@ -43,7 +43,7 @@ class TetrisGameEnv(py_environment.PyEnvironment):
             # Make sure episodes don't go on forever.
         oldscore = self.game.score
         instructionint = action[0]
-        self.game.instruction = gl.decode[instructionint]
+        self.game.instruction = bgl.decode[instructionint]
         status = self.game.dqn_update()
         if status == "end_episode" or self.game.stepcount == 1000:
             self._episode_ended = True

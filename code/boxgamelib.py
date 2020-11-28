@@ -36,10 +36,8 @@ INITIAL_SCREENMAT = np.array([
 
 decode = {
         0: "none",
-        1: "rot_anticlock",
-        2: "rot_clock",
-        3: "move_left",
-        4: "move_right"   
+        1: "move_left",
+        2: "move_right"   
         }
 
 class Tetromino:
@@ -48,44 +46,8 @@ class Tetromino:
         self.name = name
         self.x = x
         self.y = y
-        
-        if self.name == 'T':                                                         #
-            self.shape = np.array([[0,1,0],[1,1,1],[0,0,0]])                        ###
-        
-        elif self.name == 'invS':                                                   ##
-            self.shape = np.array([[1,1,0],[0,1,1],[0,0,0]])                         ##
-   
-        elif self.name == 'S':                                                       ##
-            self.shape = np.array([[0,1,1],[1,1,0],[0,0,0]])                        ##
-            
-        elif self.name == 'invL':                                                   #
-            self.shape = np.array([[1,0,0],[1,1,1],[0,0,0]])                        ###
-                
-        elif self.name == 'L':                                                        #
-            self.shape = np.array([[0,0,1],[1,1,1],[0,0,0]])                        ###
-               
-        elif self.name == 'Bx':                                                     ##
-            self.shape = np.array([[1,1],[1,1]])                                    ##
-                     
-        elif self.name == 'Ln':
-            self.shape = np.array([[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]])        ####
-           
-    def rotate(self):                                                               #rotate 90 degrees clockwise
-        if self.name == 'Ln':
-            rotshape = np.zeros((4,4))
-            for i in range(4):
-                for j in range(4):
-                    if self.shape[i,j] == 1:
-                        rotshape[j,(3-i)] = 1
-        elif self.name == 'Bx':
-            rotshape = self.shape
-        else:
-            rotshape = np.zeros((3,3))
-            for i in range(3):
-                for j in range(3):
-                    if self.shape[i,j] == 1:
-                        rotshape[j,(2-i)] = 1
-        self.shape = rotshape
+        self.shape = np.array([[1,1],[1,1]])                                    ##
+                                                                                ##
 
 def freezetet(screenmat):                                                              #converts the tetromino squares into white remnant squares and destroys the active tet, ready to create a new one
     for i in range(4,24):
@@ -93,8 +55,6 @@ def freezetet(screenmat):                                                       
             if screenmat[i,j] == 2:
                 screenmat[i,j] = 1
     return screenmat
-        
-
 
 def drawscreen(screen, screenmat):                                                                   #visually renders the screenmat matrix
     screen.fill(GREY)                                                               #grey border
@@ -108,16 +68,10 @@ def drawscreen(screen, screenmat):                                              
     pg.display.flip()
 
 
-
 def tetdrop(tet, screenmat):                                                               #inserts the active tetromino into the screen matrix
     tetsize = 0
     tet.y += 1                                                                                 #drop tetromino by one layer (only occurs when checking new position)
-    if tet.name == 'Ln':
-        tetsize = 4
-    elif tet.name == 'Bx':
-        tetsize = 2
-    else:
-        tetsize = 3   
+    tetsize = 2 
     for j in range(tet.x,(tet.x + tetsize)):
         for i in range(tet.y, (tet.y + tetsize)):
             if tet.shape[(i - tet.y),(j - tet.x)] == 1:
@@ -139,7 +93,6 @@ def tetdrop(tet, screenmat):                                                    
                 screenmat[i,j] = 2                                                
     return screenmat
                     
-
 def scorecheck(screenmat):
     increment = 0
     for i in range(4,24):
@@ -168,7 +121,6 @@ class TetrisGame:
         self.screen = pg.display.set_mode(size)
         pg.display.set_caption("tetrisgame")
         self.score = 0
-        self.shapes = ["T","S","invS","L","invL","Bx","Ln"]
         self.manualinput = manualinput                          #SWITCH BETWEEN HUMAN INPUT AND FILE INPUT
         self.demo = demo                                        #DO WE SHOW MACHINE PLAY?
         self.frameadv = True
@@ -179,9 +131,8 @@ class TetrisGame:
             # self.sessionfile = tfile.tfile(sessionID)
         rng.seed()                                                                     
         self.instruction = "none"
-        self.tet = Tetromino(rng.choice(self.shapes), 4,0)                                                        #initialise                                                                    
-        for r in range(rng.randint(0,3)):
-            self.tet.rotate()
+        init_x = rng.randint(4,6)
+        self.tet = Tetromino("Bx", init_x,0)                                                        #initialise                                                                    
         tetdrop(self.tet, self.screenmat)
 
     def game_reset(self):
@@ -190,9 +141,7 @@ class TetrisGame:
         self.screenmat = INITIAL_SCREENMAT.copy()
         self.score = 0
         self.stepcount = 0
-        self.tet = Tetromino(rng.choice(self.shapes), 4,0)
-        for r in range(rng.randint(0,3)):
-            self.tet.rotate()
+        self.tet = Tetromino("Bx", 4,0)
         tetdrop(self.tet, self.screenmat)
 
     def update(self):
@@ -202,11 +151,7 @@ class TetrisGame:
                     # self.sessionfile.cutoff()                                           # close file if recording
                 return "quit"                                                            # kill main loop
             if event.type == pg.KEYDOWN:    
-                if self.manualinput == True:                
-                    if event.key == pg.K_q:                                                     # read other keys to find next instruction
-                        self.instruction = "rot_anticlock"
-                    if event.key == pg.K_e:
-                        self.instruction = "rot_clock"
+                if self.manualinput == True:                                             # read other keys to find next instruction
                     if event.key == pg.K_a:
                         self.instruction = "move_left"
                     if event.key == pg.K_d:
@@ -229,13 +174,7 @@ class TetrisGame:
                 self.frameadv = False
             # if self.manualinput == True:
                 # self.sessionfile.write(self.screenmat, self.instruction)                                             #begin by writing current state
-            if self.instruction == "rot_anticlock":
-                self.tet.rotate()
-                self.tet.rotate()
-                self.tet.rotate()
-            elif self.instruction == "rot_clock":
-                self.tet.rotate()
-            elif self.instruction == "move_left":
+            if self.instruction == "move_left":
                 self.tet.x += (-1)
             elif self.instruction == "move_right":
                 self.tet.x += 1
@@ -243,13 +182,7 @@ class TetrisGame:
             failmat = np.full_like(self.screenmat, 2)    
             check = tetdrop(self.tet, self.screenmat)
             if np.array_equal(check, failmat):                                            #instructions that move the tetromino offscreen are invalid       
-                if self.instruction == "rot_anticlock":                              #find out which instruction was given and undo
-                    self.tet.rotate()
-                elif self.instruction == "rot_clock":
-                    self.tet.rotate()
-                    self.tet.rotate()
-                    self.tet.rotate()
-                elif self.instruction == "move_left":
+                if self.instruction == "move_left":                                     #find out which instruction was given and undo
                     self.tet.x += 1
                 elif self.instruction == "move_right":
                     self.tet.x += (-1)
@@ -264,9 +197,8 @@ class TetrisGame:
                     self.screenmat = scoreret[1]
                     if self.demo == True:
                         print("POINT(S) SCORED! Current score is {0}".format(self.score))
-                self.tet = Tetromino(rng.choice(self.shapes), 4,0)
-                for r in range(rng.randint(0,3)):
-                    self.tet.rotate()
+                init_x = rng.randint(4,6)
+                self.tet = Tetromino("Bx", init_x,0)
                 tetdrop(self.tet, self.screenmat)
             else:
                 self.screenmat = check                                                               
@@ -290,13 +222,7 @@ class TetrisGame:
     
     def dqn_update(self):
         clock = pg.time.Clock()
-        if self.instruction == "rot_anticlock":
-            self.tet.rotate()
-            self.tet.rotate()
-            self.tet.rotate()
-        elif self.instruction == "rot_clock":
-            self.tet.rotate()
-        elif self.instruction == "move_left":
+        if self.instruction == "move_left":
             self.tet.x += (-1)
         elif self.instruction == "move_right":
             self.tet.x += 1
@@ -304,13 +230,7 @@ class TetrisGame:
         failmat = np.full_like(self.screenmat, 2)    
         check = tetdrop(self.tet, self.screenmat)
         if np.array_equal(check, failmat):                                            #instructions that move the tetromino offscreen are invalid       
-            if self.instruction == "rot_anticlock":                              #find out which instruction was given and undo
-                self.tet.rotate()
-            elif self.instruction == "rot_clock":
-                self.tet.rotate()
-                self.tet.rotate()
-                self.tet.rotate()
-            elif self.instruction == "move_left":
+            if self.instruction == "move_left":                                     #find out which instruction was given and undo
                 self.tet.x += 1
             elif self.instruction == "move_right":
                 self.tet.x += (-1)
@@ -323,9 +243,8 @@ class TetrisGame:
             if inc != 0:
                 self.score += inc
                 self.screenmat = scoreret[1]
-            self.tet = Tetromino(rng.choice(self.shapes), 4,0)
-            for r in range(rng.randint(0,3)):
-                self.tet.rotate()
+            init_x = rng.randint(4,6)
+            self.tet = Tetromino("Bx", init_x,0)
             tetdrop(self.tet, self.screenmat)
         else:
             self.screenmat = check                                                               

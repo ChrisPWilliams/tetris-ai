@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 import gamelib as gl
 import tetris_env as tenv
+import box_env as benv
 
 from tf_agents.eval import metric_utils
 from tf_agents.metrics import tf_metrics
@@ -26,13 +27,13 @@ from tf_agents.trajectories import time_step as ts
 
 tf.compat.v1.enable_v2_behavior()
 
-sessionID = 20                                      
-model_age_steps = 40000
+sessionID = 27                                      
+model_age_steps = 500000
 demo_steps = 1000
 
 
 
-demo_game_env_py = tenv.TetrisGameEnv(sessionID, True)
+demo_game_env_py = benv.TetrisGameEnv(sessionID, True)
 demo_game_env = tf_py_environment.TFPyEnvironment(demo_game_env_py)
 
 policy_name = "modelpolicy_session_{0}_step_{1}".format(sessionID, model_age_steps)

@@ -8,6 +8,7 @@ import numpy as np
 import tensorflow as tf
 import tetfile as tfile
 import tetris_env as tenv
+import box_env as benv                                  # REMEMBER TO CHECK WHICH ENVIRONMENT WE ARE RUNNING!!!
 
 from tf_agents.agents.dqn import dqn_agent
 from tf_agents.drivers import dynamic_step_driver
@@ -30,45 +31,44 @@ tf.compat.v1.enable_v2_behavior()
 
 # SET HYPERPARAMETERS
 
-num_iterations = 100000                 # roughly 4000 iterations per minute
+num_iterations = 1000000                 # roughly 4000 iterations per minute
 
 initial_collect_steps = 1000
 collect_steps_per_iteration = 1
-replay_buffer_max_length = 100000
+replay_buffer_max_length = 200000
 
 batch_size = 64
-learning_rate = 3e-4                    # smaller = slower learning
-adam_epsilon = 1e-5                     # bigger = slower learning but higher accuracy
-target_update_period = 1               # number of episodes before target network updates
+learning_rate = 1e-4                    # smaller = slower learning
+adam_epsilon = 0.01                     # bigger = slower learning but higher accuracy
+target_update_period = 100               # number of steps before target network updates
 start_epsilon = 0.5
-end_epsilon = 0.05
+end_epsilon = 0.01
 
 
 num_eval_episodes = 10
-eval_interval = 1000
-log_interval = 200
-save_interval = 50000
+eval_interval = 10000
+log_interval = 2000
+save_interval = 500000
 # INITIALISE GAME
 
-sessionID = 21                                      
+sessionID = 27                                      
 
 # SETUP ENVIRONMENTS
 
-train_game_env_py = tenv.TetrisGameEnv(sessionID, False)
-eval_game_env_py = tenv.TetrisGameEnv(sessionID, False)
+train_game_env_py = benv.TetrisGameEnv(sessionID, False)                                    # CHECK ENVIRONMENT!!!!!
+eval_game_env_py = benv.TetrisGameEnv(sessionID, False)
 train_game_env = tf_py_environment.TFPyEnvironment(train_game_env_py)
 eval_game_env = tf_py_environment.TFPyEnvironment(eval_game_env_py)                      
 
 # INITIALISE AGENT
 
-conv_layer_params = ((16, (4,4), 2), (32, (2,2), 1))     # 2 convolutional layers: one with 16 4x4 filters w/ stride 4, one with 32 2x2 filters w/ stride 1
-fc_layer_params = (128, 128)         # 2 hidden layers of 128 neurons each
+conv_layer_params = ((64, (4,4), 2), (64, (2,2), 1))     # 2 convolutional layers: one with 32 4x4 filters w/ stride 2, one with 64 2x2 filters w/ stride 1
+fc_layer_params = (256, 256)         # 2 hidden layers of 256 neurons each
 q_net = q_network.QNetwork(train_game_env.observation_spec(),
                            train_game_env.action_spec(), 
                            conv_layer_params=conv_layer_params, 
                            fc_layer_params=fc_layer_params)
 
-# convolutional layer causes breakage: check tetris_env for more
 
 optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate, epsilon=adam_epsilon)
 
